@@ -8,16 +8,14 @@ export class HttpExceptionFilter {
     const request = ctx.getRequest();
     const status = exception.getStatus();
 
-    console.warn('Este es le filtro', response);
-
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       hasError: true,
       message: exception.message,
       path: request.url,
-      type: exception.cause.type || 'API error',
-      cuase: exception.cause.message,
+      type: exception?.cause?.type || 'API error',
+      cuase: exception?.cause?.message,
     });
   }
 }
