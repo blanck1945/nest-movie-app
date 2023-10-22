@@ -15,10 +15,7 @@ export class UserGuard implements CanActivate {
     private userService: UserService,
   ) {}
 
-  async canActivate(
-    context: ExecutionContext,
-    secret?: string,
-  ): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
 
@@ -28,7 +25,7 @@ export class UserGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET || secret,
+        secret: process.env.JWT_SECRET,
       });
 
       const user = await this.userService.checkUserExist({

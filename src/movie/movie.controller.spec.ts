@@ -14,10 +14,8 @@ import { AdminGuard } from '../auth/guards/admin.guards';
 import { CREATE_MOVIE_BODY } from './test/mocks/body';
 
 const mockTokens = {
-  regularUserToken:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFzcGFzdHJhbmE5OTAiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiYXNwYXN0cmFuYTk5MEBnbWFpbC5jb20iLCJpYXQiOjE2OTc4MTQ3NjV9.YfZre7EHMQSKvbEe93kXhUP8srv_8vBFd0vdtR2iVS4',
-  adminUserToken:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluLm1haW4iLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluLm1haW5AZ21haWwuY29tIiwiaWF0IjoxNjk3ODE0Mjc4fQ.CIjEXyvAxqwo73G5pzu3ZgWhX9J7xvZAM8PjniYzAYM',
+  regularUserToken: process.env.REGULAR_USER_TOKEN,
+  adminUserToken: process.env.ADMIN_USER_TOKEN,
 };
 
 describe('MovieController', () => {
@@ -88,10 +86,7 @@ describe('MovieController', () => {
     it('when show endpoint is called by a "Usuario Regular" the call should succeed', async () => {
       const context = getMockContext('regularUserToken');
 
-      const result = await userGuard.canActivate(
-        context,
-        'b09b5d8e-6edc-11ee-b962-0242ac120002',
-      );
+      const result = await userGuard.canActivate(context);
 
       expect(result).toBe(true);
     });
@@ -99,10 +94,7 @@ describe('MovieController', () => {
     it('when show endpoint is called by a "Administrador" the call should fail', async () => {
       const context = getMockContext('adminUserToken');
 
-      const error = await userGuard.canActivate(
-        context,
-        'b09b5d8e-6edc-11ee-b962-0242ac120002',
-      );
+      const error = await userGuard.canActivate(context);
 
       expect(error).toBe(false);
     });
