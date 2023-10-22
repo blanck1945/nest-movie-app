@@ -10,6 +10,7 @@ import {
   NotificationSchema,
 } from '../notification/schema/notification.schema';
 import { NotificationService } from '../notification/notification.service';
+import { JwtTokenService } from './jwt/jwt.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { NotificationService } from '../notification/notification.service';
     JwtModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService, NotificationService],
+  providers: [AuthService, UserService, NotificationService, JwtTokenService],
 })
 export class AuthModule {}

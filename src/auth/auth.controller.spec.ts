@@ -1,70 +1,98 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
-import { CreateUserDto } from './dto/user.dt';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
 import { AppModule } from '../app.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User } from './decorators/user.decorator';
-import { UserSchema } from './schema/user.schema';
+import { User, UserSchema } from './schema/user.schema';
 import {
   Notification,
   NotificationSchema,
 } from '../notification/schema/notification.schema';
 import { NotificationService } from '../notification/notification.service';
 import { UserModule } from '../user/user.module';
-
-const mockUser = {
-  username: 'test2023',
-  firstName: 'test',
-  lastName: 'pass',
-  email: 'test@gmail.com',
-  password: 'test123',
-};
+import { JwtTokenService } from './jwt/jwt.service';
+import { SIGNUP_MOCK_BODY } from './test/mocks/signup.mock';
+import { LOGIN_MOCK_REGULAR_USER_BODY } from './test/mocks/login.mock';
 
 describe('AuthController', () => {
-  let controller: AuthController;
-  let createUserDto: CreateUserDto;
+  let authController: AuthController;
+  //let createUserDto: CreateUserDto;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         AppModule,
+        UserModule,
         MongooseModule.forFeature([
           { name: User.name, schema: UserSchema },
           { name: Notification.name, schema: NotificationSchema },
         ]),
         JwtModule,
-        UserModule,
       ],
       controllers: [AuthController],
-      providers: [AuthService, UserService, NotificationService],
+      providers: [
+        AuthService,
+        UserService,
+        NotificationService,
+        JwtTokenService,
+      ],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
-    createUserDto = module.get<CreateUserDto>(CreateUserDto);
+    authController = module.get<AuthController>(AuthController);
+    //createUserDto = module.get<CreateUserDto>(CreateUserDto);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(authController).toBeDefined();
   });
 
   describe('POST - /signup', () => {
-    it('should be call one time', async () => {
-      await controller.signup(mockUser);
-      expect(controller.signup).toHaveBeenCalledTimes(1);
+    it('should create a new user and return _id, email and username', async () => {
+      const mockResponse = jest
+        .fn((x) => x)
+        .mockImplementation((body) => {
+          return {
+            hasErrror: false,
+            message: 'User created successfully',
+            user_id: '5f9d4b0b9d9b4b0017b0e3d0',
+            email: body.email,
+            username: body.username,
+          };
+        });
+
+      const mockResult = mockResponse(SIGNUP_MOCK_BODY);
+      const result = await authController.signup(SIGNUP_MOCK_BODY);
+
+      expect(result).toHaveProperty('message', 'User created successfully');
+      expect(result).toHaveProperty('hasError', false);
+
+      expect(result.username).toEqual(mockResult.username);
+      expect(result.email).toEqual(mockResult.email);
+
+      expect(result.user_id).not.toEqual(mockResult.user_id);
     });
+  });
 
-    it('should be call with correct params', async () => {
-      await controller.signup(mockUser);
-      expect(controller.signup).toHaveBeenCalledWith(mockUser);
-    });
+  describe('POST - /login', () => {
+    it('should login an existing user and return user data and a jwt token', async () => {
+      const result = await authController.login(LOGIN_MOCK_REGULAR_USER_BODY);
 
-    it('should successfullly signup user', async () => {
-      const result = ['test'];
-      jest.spyOn(controller, 'signup').mockImplementation(async () => result);
-
-      expect(await controller.signup(mockUser)).toBe(result);
+      expect(result).toHaveProperty('message', 'User logged in successfully');
+      expect(result).toHaveProperty('hasError', false);
+      expect(result).toHaveProperty('token');
+      expect(result).toHaveProperty('user');
+      expect(result.user).toHaveProperty('username');
+      expect(result.user).toHaveProperty('email');
+      expect(result.user).toHaveProperty('notifications');
+      expect(result.user).toHaveProperty('createdAt');
+      expect(result.user).toHaveProperty('updatedAt');
+      expect(result.user).toHaveProperty('id');
+      expect(result.user).toHaveProperty('password');
+      expect(result.user).toHaveProperty('role');
+      expect(result.user).toHaveProperty('firstName');
+      expect(result.user).toHaveProperty('lastName');
+      expect(result.user).toHaveProperty('notifications');
     });
   });
 });

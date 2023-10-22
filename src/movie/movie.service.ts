@@ -8,12 +8,9 @@ export class MovieService {
   constructor(private coreService: CoreService) {}
 
   async index() {
-    try {
-      const result = await axios.get('http://swapi.dev/api/films');
-      return result.data;
-    } catch (error) {
-      console.log(error.message);
-    }
+    return this.coreService.wrapper(
+      async () => await axios.get('http://swapi.dev/api/films'),
+    );
   }
 
   async show(id) {
@@ -43,12 +40,11 @@ export class MovieService {
       async () => {
         await axios.get(process.env.MOVIE_API_URL + id);
 
-        //console.warn('updating record', body);
-
         return {
           hasError: false,
           message: 'movie updated successfully',
           id,
+          title: body.title,
         };
       },
       {
@@ -62,6 +58,7 @@ export class MovieService {
       console.warn('body', body);
       //   const result = await axios.get(`${process.env.MOVIE_API_URL}/${id}`);
       //   return result.data;
+      return 'movie soft deleted successfully';
     } catch (error) {
       console.log(error);
     }
@@ -70,7 +67,7 @@ export class MovieService {
   async restore(body) {
     try {
       console.warn('body', body);
-      return 'movie deleted successfully';
+      return 'movie restored successfully';
       //   const result = await axios.get(`${process.env.MOVIE_API_URL}/${id}`);
       //   return result.data;
     } catch (error) {

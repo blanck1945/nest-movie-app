@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { UserService } from '../user/user.service';
 import { NotificationService } from '../notification/notification.service';
+import { JwtTokenService } from './jwt/jwt.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -26,7 +27,12 @@ describe('AuthService', () => {
         JwtModule,
       ],
       controllers: [AuthController],
-      providers: [AuthService, UserService, NotificationService],
+      providers: [
+        AuthService,
+        UserService,
+        NotificationService,
+        JwtTokenService,
+      ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);

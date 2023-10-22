@@ -10,6 +10,7 @@ import { AppModule } from '../app.module';
 import { UserModule } from '../user/user.module';
 import { CREATE_MOVIE_BODY, UPDATE_MOVIE_BODY } from './test/mocks/body';
 import { SHOW_MOVIE_RESPONSE } from './test/mocks/movie';
+import { JwtTokenService } from '../auth/jwt/jwt.service';
 
 describe('MovieService', () => {
   let movieService: MovieService;
@@ -22,7 +23,13 @@ describe('MovieService', () => {
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       ],
       controllers: [MovieController],
-      providers: [MovieService, UserService, JwtService, CoreService],
+      providers: [
+        MovieService,
+        UserService,
+        JwtService,
+        CoreService,
+        JwtTokenService,
+      ],
     }).compile();
 
     movieService = module.get<MovieService>(MovieService);
@@ -33,7 +40,7 @@ describe('MovieService', () => {
   });
 
   describe('index method is called', () => {
-    it('should return an object', async () => {
+    it('should return an array of movies', async () => {
       const result = await movieService.index();
 
       expect(result).toHaveProperty('count');
@@ -44,7 +51,7 @@ describe('MovieService', () => {
   });
 
   describe('show method is called', () => {
-    it('should return an object', async () => {
+    it('should return a movie', async () => {
       const mockResponse = jest
         .fn()
         .mockImplementation(() => SHOW_MOVIE_RESPONSE);
@@ -71,7 +78,7 @@ describe('MovieService', () => {
   });
 
   describe('create method is called', () => {
-    it('should return an object', async () => {
+    it('Should return an object indicating that the movie was created successfully', async () => {
       const mockResponse = jest
         .fn((x) => x)
         .mockImplementation((body) => {
@@ -108,7 +115,7 @@ describe('MovieService', () => {
       }
     });
 
-    it("should return an object with the message 'movie updated successfully'", async () => {
+    it('Should return an object indicating that the movie was updated successfully', async () => {
       const mockResponse = jest
         .fn((x, y) => x)
         .mockImplementation((id) => {
@@ -116,6 +123,7 @@ describe('MovieService', () => {
             hasError: false,
             message: 'movie updated successfully',
             id,
+            title: UPDATE_MOVIE_BODY.title,
           };
         });
 
@@ -123,6 +131,10 @@ describe('MovieService', () => {
       const result = await movieService.update(1, UPDATE_MOVIE_BODY);
 
       expect(result).toEqual(mockResult);
+      expect(result).toHaveProperty('message', mockResult.message);
+      expect(result).toHaveProperty('hasError', false);
+      expect(result).toHaveProperty('title');
+      expect(result).toHaveProperty('id');
     });
   });
 
@@ -141,7 +153,7 @@ describe('MovieService', () => {
       }
     }, 10000);
 
-    it('should return an object with ', async () => {
+    it('Should return an object indicating that the movie was deleted successfully', async () => {
       const deleteMockFn = jest
         .fn((x) => x)
         .mockImplementation((id) => {

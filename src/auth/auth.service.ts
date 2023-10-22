@@ -1,42 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { UserService } from '../user/user.service';
-import { sign } from 'jsonwebtoken';
 import { NotificationService } from '../notification/notification.service';
+import { JwtTokenService } from './jwt/jwt.service';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private jwtTokenService: JwtTokenService,
     private userSerive: UserService,
     private notificationService: NotificationService,
   ) {}
 
-  async signup(body) {
-    return await this.userSerive.create(body);
-  }
-
   async login({ username }: LoginUserDto) {
-    const user = await this.userSerive.checkUserExist({ username });
+    try {
+      const user = await this.userSerive.findOne({
+        filter: { username },
+        populate: 'notifications',
+      });
 
-    const token = await this.generateToken(user);
+      const token = await this.jwtTokenService.generateToken(user);
 
-    return {
-      user,
-      token,
-    };
-  }
-
-  async generateToken(user) {
-    const payload = {
-      username: user.username,
-      role: user.role,
-      email: user.email,
-    };
-    return await sign(payload, process.env.JWT_SECRET);
+      return {
+        hasError: false,
+        message: 'User logged in successfully',
+        user,
+        token,
+      };
+    } catch (error) {
+      throw new NotFoundException('User not found');
+    }
   }
 
   async switchUserRole(user, userExists, role) {
-    const token = await this.generateToken({
+    const token = await this.jwtTokenService.generateToken({
       username: userExists.username,
       role,
     });
@@ -48,8 +45,6 @@ export class AuthService {
       message: 'Cambia el role de tu cuenta',
       reference: 'change role',
     });
-
-    console.warn('NOTIFICATION', userExists._id);
 
     await this.userSerive.addNotification(userExists._id, notification);
 

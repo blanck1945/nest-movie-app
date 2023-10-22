@@ -12,6 +12,7 @@ import { ExecutionContext } from '@nestjs/common';
 import { AppModule } from '../app.module';
 import { AdminGuard } from '../auth/guards/admin.guards';
 import { CREATE_MOVIE_BODY } from './test/mocks/body';
+import { JwtTokenService } from '../auth/jwt/jwt.service';
 
 const mockTokens = {
   regularUserToken: process.env.REGULAR_USER_TOKEN,
@@ -60,6 +61,7 @@ describe('MovieController', () => {
         UserService,
         JwtService,
         CoreService,
+        JwtTokenService,
       ],
     }).compile();
 
@@ -94,9 +96,18 @@ describe('MovieController', () => {
     it('when show endpoint is called by a "Administrador" the call should fail', async () => {
       const context = getMockContext('adminUserToken');
 
-      const error = await userGuard.canActivate(context);
+      try {
+        await userGuard.canActivate(context);
 
-      expect(error).toBe(false);
+        // Fail test if above expression doesn't throw anything.
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error.status).toBe(401);
+        expect(error.response).toEqual({
+          message: 'Unauthorized',
+          statusCode: 401,
+        });
+      }
     });
   });
 

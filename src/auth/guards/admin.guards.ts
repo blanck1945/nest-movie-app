@@ -26,8 +26,8 @@ export class AdminGuard implements CanActivate {
         secret: process.env.JWT_SECRET,
       });
 
-      const user = await this.userService.checkUserExist({
-        username: payload.username,
+      const user = await this.userService.findOne({
+        filter: { username: payload.username },
       });
 
       if (user.role !== 'admin') {

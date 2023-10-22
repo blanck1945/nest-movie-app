@@ -15,11 +15,10 @@ export class UserExistGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
 
     try {
-      const userExist = await this.userService.checkUserExist({
-        email: request.body.email,
+      const userExist = await this.userService.findOne({
+        filter: { email: request.body.email },
       });
 
-      console.log(userExist);
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['userToUpdate'] = userExist;

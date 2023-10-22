@@ -29,13 +29,6 @@ export class ErrorHandler extends HttpException {
       status: error.response.status,
     };
 
-    const ref = {
-      ...defaultErrorConfig,
-      type: 'Axios error',
-    };
-
-    console.warn('ref', ref);
-
     if (error.response.status === 404) {
       return {
         ...defaultErrorConfig,

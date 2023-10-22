@@ -12,10 +12,9 @@ export class HttpExceptionFilter {
       statusCode: status,
       timestamp: new Date().toISOString(),
       hasError: true,
-      message: exception.message,
+      message: exception?.cause?.message || exception.message,
       path: request.url,
       type: exception?.cause?.type || 'API error',
-      cuase: exception?.cause?.message,
     });
   }
 }
