@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class InfoService {
+export class AppService {
   appInfo() {
     return {
       appName: 'Movie App - Conexa',

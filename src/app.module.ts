@@ -5,8 +5,8 @@ import { CoreModule } from './core/core.module';
 import { AuthModule } from './auth/auth.module';
 import { MovieModule } from './movie/movie.module';
 import { NotificationModule } from './notification/notification.module';
-import { InfoModule } from './info/info.module';
-import { AppController } from './app/app.controller';
+import { AppController } from './app.controller';
+import { AppService } from './appservice';
 
 @Module({
   imports: [
@@ -21,8 +21,8 @@ import { AppController } from './app/app.controller';
     AuthModule,
     MovieModule,
     NotificationModule,
-    InfoModule,
   ],
   controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AppInfoResponse {
+export class InfoResponse {
   @ApiProperty({ example: 'App name' })
   appName: string;
   @ApiProperty({ example: '1.0.0' })
