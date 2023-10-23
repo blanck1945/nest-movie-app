@@ -41,4 +41,28 @@ describe('AuthService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  describe('POST - /login', () => {
+    it('login should fail if no user is found - Error message should send Invalid credentials', async () => {
+      try {
+        await service.login({
+          username: 'usuario no existente',
+          password: 'test123',
+        });
+      } catch (error) {
+        expect(error.message).toEqual('Invalid credentials');
+      }
+    });
+
+    it('login should fail if password dont match - Error message should send Invalid credentials', async () => {
+      try {
+        await service.login({
+          username: 'test.user',
+          password: 'contraseña incorrecta',
+        });
+      } catch (error) {
+        expect(error.message).toEqual('Invalid credentials');
+      }
+    });
+  });
 });

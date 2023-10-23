@@ -14,6 +14,7 @@ import { AdminGuard } from '../auth/guards/admin.guards';
 import { CreateMovieDto, UpdateMovieDto } from './dto/movie.dto';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -42,6 +43,7 @@ export class MovieController {
   }
 
   @Get(':id')
+  @ApiBearerAuth()
   @UseGuards(UserGuard)
   @ApiOkResponse({
     description: 'Movie retrieved successfully.',
@@ -58,6 +60,7 @@ export class MovieController {
   }
 
   @Post('create')
+  @ApiBearerAuth()
   @ApiCreatedResponse({
     description: 'Movie created successfully.',
     type: MovieReturnModel,
@@ -77,6 +80,7 @@ export class MovieController {
   }
 
   @Put(':id')
+  @ApiBearerAuth()
   @UseGuards(AdminGuard)
   @ApiOkResponse({
     description: 'Movie updated successfully.',
@@ -99,19 +103,8 @@ export class MovieController {
     return this.movieService.update(id, body);
   }
 
-  @Put('soft')
-  @UseGuards(AdminGuard)
-  async softDelete(@Body() body) {
-    return this.movieService.softDelete(body);
-  }
-
-  @Put('restore')
-  @UseGuards(AdminGuard)
-  async restore(@Body() body) {
-    return this.movieService.restore(body);
-  }
-
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({
     description: 'Movie deleted successfully.',
     type: DeleteModelResponse,

@@ -30,7 +30,7 @@ export class AdminGuard implements CanActivate {
         filter: { username: payload.username },
       });
 
-      if (user.role !== 'admin') {
+      if (user.role !== 'Administrador') {
         throw new UnauthorizedException();
       }
 

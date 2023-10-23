@@ -13,6 +13,7 @@ export class User {
     required: true,
     trim: true,
     type: String,
+    unique: true,
   })
   email: string;
 
@@ -49,7 +50,6 @@ export class User {
     required: true,
     trim: true,
     type: String,
-    select: false,
   })
   password: string;
 
@@ -59,6 +59,10 @@ export class User {
     refPath: 'user_id',
   })
   notifications: Notification[];
+
+  async comparePassword(password: string): Promise<boolean> {
+    return bcrypt.compareAsync(password, this.password);
+  }
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
@@ -73,3 +77,12 @@ UserSchema.pre('save', async function (next) {
     return next(error);
   }
 });
+
+UserSchema.methods.toJSON = function () {
+  const { __v, password, ...user } = this.toObject();
+  return user;
+};
+
+UserSchema.methods.comparePassword = async function (password: string) {
+  return await bcrypt.compare(password, this.password);
+};

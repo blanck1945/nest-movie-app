@@ -17,6 +17,7 @@ import { UserExists } from './decorators/userExists.decorator';
 import { UserExistGuard } from './guards/userExists.guard';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -29,6 +30,7 @@ import { NotFoundModel } from '../core/swagger/notFound.model';
 import { LoginModelResponse } from './swagger/login.model';
 import { ChangeRoleDto } from './dto/changeRole.dto';
 import { MongooseIdPipe } from '../core/pipes/mongooseId.pipe';
+import { ChangeRoleModelResponse } from './swagger/changeRole.model';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -61,7 +63,6 @@ export class AuthController {
     description: 'Bad request.',
     type: ValildationModel,
   })
-  @ApiNotFoundResponse({ description: 'User not found.', type: NotFoundModel })
   async login(@Body() body: LoginUserDto) {
     return this.authService.login(body);
   }
@@ -78,9 +79,10 @@ export class AuthController {
 
   @Put('change-role/:userId')
   @UseGuards(AdminGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'User logged in successfully.',
-    type: LoginModelResponse,
+    description: 'User role changed successfully.',
+    type: ChangeRoleModelResponse,
   })
   @ApiBadRequestResponse({
     description: 'Bad request.',

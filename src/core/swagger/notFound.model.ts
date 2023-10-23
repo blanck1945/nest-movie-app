@@ -13,7 +13,7 @@ export class NotFoundModel {
   @ApiProperty({ example: 'Record not found' })
   message: string;
 
-  @ApiProperty({ example: '/movies/11' })
+  @ApiProperty({ example: '/path/:query' })
   path: string;
 
   @ApiProperty({ example: 'Axios error' })
