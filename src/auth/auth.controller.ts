@@ -67,16 +67,6 @@ export class AuthController {
     return this.authService.login(body);
   }
 
-  @Post('admin')
-  @UseGuards(AdminGuard, UserExistGuard)
-  async admin(
-    @User() user: UserSchema,
-    @UserExists() userExists: any,
-    @Body('newRole') newRole: string,
-  ) {
-    return this.authService.switchUserRole(user, userExists, newRole);
-  }
-
   @Put('change-role/:userId')
   @UseGuards(AdminGuard)
   @ApiBearerAuth()

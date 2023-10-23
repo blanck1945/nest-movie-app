@@ -37,25 +37,4 @@ export class AuthService {
       throw new HttpException('Invalid credentials', 400);
     }
   }
-
-  async switchUserRole(user, userExists, role) {
-    const token = await this.jwtTokenService.generateToken({
-      username: userExists.username,
-      role,
-    });
-
-    const notification = await this.notificationService.create({
-      user_id: userExists._id,
-      token,
-      type: 'action required',
-      message: 'Cambia el role de tu cuenta',
-      reference: 'change role',
-    });
-
-    await this.userSerive.addNotification(userExists._id, notification);
-
-    return {
-      message: 'Token generado con exito',
-    };
-  }
 }
