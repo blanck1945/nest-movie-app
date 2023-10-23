@@ -1,17 +1,8 @@
 import { Controller, Get, Redirect } from '@nestjs/common';
 
-const BASE_PATH =
-  process.env.RAILWAY_PUBLIC_DOMAIN || `localhost:${process.env.PORT || 3333}`;
-
-console.warn(
-  'process.env.RAILWAY_PUBLIC_DOMAIN',
-  process.env.RAILWAY_PUBLIC_DOMAIN,
-);
-console.warn('BASE_PATH', BASE_PATH);
-
 @Controller({ path: '' })
 export class AppController {
   @Get()
-  @Redirect(`${BASE_PATH}/info`, 301)
+  @Redirect(`${process.env.BASE_URL}/info`, 301)
   appInfo() {}
 }
