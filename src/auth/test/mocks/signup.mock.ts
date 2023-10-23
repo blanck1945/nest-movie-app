@@ -6,10 +6,15 @@ export const SIGNUP_MOCK_RESPONSE = {
   username: 'test123',
 };
 
+// get current hour
+const date = new Date();
+const minutes = date.getMinutes();
+const str_minutes = minutes.toString();
+
 export const SIGNUP_MOCK_BODY = {
-  username: 'test2023',
-  firstName: 'test',
-  lastName: 'pass',
-  email: 'test@gmail.com',
-  password: 'test123',
+  username: `${str_minutes}.username`,
+  firstName: `${str_minutes}.firstName`,
+  lastName: `${str_minutes}.lastName`,
+  email: `${str_minutes}.email@gmail.com`,
+  password: `${str_minutes}.password`,
 };

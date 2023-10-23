@@ -11,6 +11,7 @@ import {
   Notification,
   NotificationSchema,
 } from '../notification/schema/notification.schema';
+import { SIGNUP_MOCK_BODY } from '../auth/test/mocks/signup.mock';
 
 describe('UserService', () => {
   let service: UserService;
@@ -42,13 +43,7 @@ describe('UserService', () => {
 
   describe('POST - /signup', () => {
     it('should create a new user and return _id, email and username', async () => {
-      const result = await service.create({
-        firstName: 'jest.fisrtName',
-        lastName: 'jest.lastName',
-        username: 'jest.username',
-        email: 'jest.email@gmail.com',
-        password: 'jest.password',
-      });
+      const result = await service.create(SIGNUP_MOCK_BODY);
 
       expect(result).toHaveProperty('message', 'User created successfully');
       expect(result).toHaveProperty('hasError', false);

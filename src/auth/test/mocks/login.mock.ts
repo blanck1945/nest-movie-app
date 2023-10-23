@@ -1,9 +1,9 @@
 export const LOGIN_MOCK_REGULAR_USER_BODY = {
-  username: 'aspastrana990',
-  password: 'test123',
+  username: 'test.username',
+  password: 'test.password',
 };
 
 export const LOGIN_MOCK_ADMIN_USER_BODY = {
-  username: 'admin.main',
-  password: 'augusto.10',
+  username: 'admin.username',
+  password: 'admin.password',
 };
