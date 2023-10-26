@@ -14,7 +14,7 @@ export class AppController {
 
   @Get('info')
   @ApiOkResponse({ description: 'App information', type: InfoResponse })
-  appInfo() {
+  appInfo(): InfoResponse {
     return this.appService.appInfo();
   }
 }

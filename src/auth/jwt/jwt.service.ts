@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/user/schema/user.schema';
 
 @Injectable()
 export class JwtTokenService {
   constructor(private jwtService: JwtService) {}
 
-  async generateToken(user) {
+  async generateToken(user: User) {
     const payload = {
       username: user.username,
       role: user.role,
@@ -18,7 +19,7 @@ export class JwtTokenService {
         expiresIn: '12h',
       });
     } catch (err) {
-      console.log(err);
+      throw new InternalServerErrorException('Could not generate token');
     }
   }
 }

@@ -1,6 +1,7 @@
-import { CreateMovieDto } from 'src/movie/dto/movie.dto';
+import { MovieCreateDto } from 'src/movie/dto/movie.create.dto';
+import { MovieUpdateDto } from 'src/movie/dto/movie.update.dto';
 
-export const CREATE_MOVIE_BODY: CreateMovieDto = {
+export const CREATE_MOVIE_BODY: MovieCreateDto = {
   title: 'The last Jedi',
   episode_id: 8,
   opening_crawl: 'The last Jedi',
@@ -14,7 +15,7 @@ export const CREATE_MOVIE_BODY: CreateMovieDto = {
   species: [],
 };
 
-export const UPDATE_MOVIE_BODY = {
+export const UPDATE_MOVIE_BODY: MovieUpdateDto = {
   title: 'The last Jedi - updated',
   episode_id: 7,
 };

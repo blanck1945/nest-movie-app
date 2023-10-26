@@ -1,4 +1,4 @@
-export const SHOW_MOVIE_RESPONSE = {
+export const MOVIE_RESPONSE_MOCK = {
   title: 'A New Hope',
   episode_id: 4,
   opening_crawl:

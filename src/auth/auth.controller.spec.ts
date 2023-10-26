@@ -2,19 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
-import { AuthService } from './auth.service';
 import { AppModule } from '../app.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './schema/user.schema';
-import {
-  Notification,
-  NotificationSchema,
-} from '../notification/schema/notification.schema';
-import { NotificationService } from '../notification/notification.service';
+import { User, UserSchema } from '../user/schema/user.schema';
 import { UserModule } from '../user/user.module';
 import { JwtTokenService } from './jwt/jwt.service';
 import { SIGNUP_MOCK_BODY } from './test/mocks/signup.mock';
 import { LOGIN_MOCK_REGULAR_USER_BODY } from './test/mocks/login.mock';
+import { LoginResponse } from 'src/user/responses/login.response';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -24,19 +19,11 @@ describe('AuthController', () => {
       imports: [
         AppModule,
         UserModule,
-        MongooseModule.forFeature([
-          { name: User.name, schema: UserSchema },
-          { name: Notification.name, schema: NotificationSchema },
-        ]),
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         JwtModule,
       ],
       controllers: [AuthController],
-      providers: [
-        AuthService,
-        UserService,
-        NotificationService,
-        JwtTokenService,
-      ],
+      providers: [UserService, JwtTokenService],
     }).compile();
 
     authController = module.get<AuthController>(AuthController);
@@ -66,11 +53,11 @@ describe('AuthController', () => {
 
       expect(result).toHaveProperty('message', 'User created successfully');
       expect(result).toHaveProperty('hasError', false);
+      expect(result).toHaveProperty('data', LoginResponse);
 
-      expect(result.username).toEqual(mockResult.username);
-      expect(result.email).toEqual(mockResult.email);
-
-      expect(result.user_id).not.toEqual(mockResult.user_id);
+      expect(result.data.username).toEqual(mockResult.username);
+      expect(result.data.email).toEqual(mockResult.email);
+      expect(result.data.user_id).not.toEqual(mockResult.user_id);
     });
   });
 
@@ -80,19 +67,22 @@ describe('AuthController', () => {
 
       expect(result).toHaveProperty('message', 'User logged in successfully');
       expect(result).toHaveProperty('hasError', false);
-      expect(result).toHaveProperty('token');
-      expect(result).toHaveProperty('user');
-      expect(result.user).toHaveProperty('username');
-      expect(result.user).toHaveProperty('email');
-      expect(result.user).toHaveProperty('notifications');
-      expect(result.user).toHaveProperty('createdAt');
-      expect(result.user).toHaveProperty('updatedAt');
-      expect(result.user).toHaveProperty('id');
-      expect(result.user).toHaveProperty('password');
-      expect(result.user).toHaveProperty('role');
-      expect(result.user).toHaveProperty('firstName');
-      expect(result.user).toHaveProperty('lastName');
-      expect(result.user).toHaveProperty('notifications');
+      expect(result).toHaveProperty('data');
+
+      expect(result.data).toHaveProperty('token');
+      expect(result.data).toHaveProperty('user');
+
+      expect(result.data.user).toHaveProperty('username');
+      expect(result.data.user).toHaveProperty('email');
+      expect(result.data.user).toHaveProperty('notifications');
+      expect(result.data.user).toHaveProperty('createdAt');
+      expect(result.data.user).toHaveProperty('updatedAt');
+      expect(result.data.user).toHaveProperty('id');
+      expect(result.data.user).toHaveProperty('password');
+      expect(result.data.user).toHaveProperty('role');
+      expect(result.data.user).toHaveProperty('firstName');
+      expect(result.data.user).toHaveProperty('lastName');
+      expect(result.data.user).toHaveProperty('notifications');
     });
   });
 });

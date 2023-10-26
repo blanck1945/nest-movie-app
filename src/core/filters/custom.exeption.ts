@@ -1,4 +1,5 @@
 import { Catch, HttpException } from '@nestjs/common';
+import { ExeptionDto } from '../responses/exeption.dto';
 
 @Catch(HttpException)
 export class HttpExceptionFilter {
@@ -8,13 +9,17 @@ export class HttpExceptionFilter {
     const request = ctx.getRequest();
     const status = exception.getStatus();
 
-    response.status(status).json({
+    const jsonResponse: ExeptionDto = {
       statusCode: status,
       timestamp: new Date().toISOString(),
-      hasError: true,
-      message: exception?.cause?.message || exception.message,
       path: request.url,
       type: exception?.cause?.type || 'API error',
+    };
+
+    response.status(status).json({
+      hasError: true,
+      message: exception?.cause?.message || exception.message,
+      ...jsonResponse,
     });
   }
 }

@@ -7,14 +7,8 @@ import {
   Put,
   Param,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/user.dt';
 import { LoginUserDto } from './dto/loginUser.dto';
-import { AdminGuard } from './guards/admin.guards';
-import { User } from './decorators/user.decorator';
-import { User as UserSchema } from './schema/user.schema';
-import { UserExists } from './decorators/userExists.decorator';
-import { UserExistGuard } from './guards/userExists.guard';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -24,65 +18,69 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from '../user/user.service';
-import { SignupModelResponse } from './swagger/signup.model';
 import { ValildationModel } from '../core/swagger/validation.model';
 import { NotFoundModel } from '../core/swagger/notFound.model';
-import { LoginModelResponse } from './swagger/login.model';
 import { ChangeRoleDto } from './dto/changeRole.dto';
 import { MongooseIdPipe } from '../core/pipes/mongooseId.pipe';
-import { ChangeRoleModelResponse } from './swagger/changeRole.model';
+import { RoleGuard } from './guards/role.guard';
+import mongoose from 'mongoose';
+import { SingupResponseDto } from 'src/user/responses/auth.response';
+import { LoginResponseDto } from 'src/user/responses/login.response';
+import { ChangeRoleResponseDto } from 'src/user/responses/changeRole.response';
+import { ERROR_MESSAGES } from 'src/core/responses/error';
+import { SUCCESS_MESSAGES } from 'src/core/responses/success';
 
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private userService: UserService,
-  ) {}
+  constructor(private userService: UserService) {}
 
   @Post('signup')
   @ApiCreatedResponse({
-    description: 'User created successfully',
-    type: SignupModelResponse,
+    description: SUCCESS_MESSAGES('user', 'create'),
+    type: SingupResponseDto,
   })
   @ApiBadRequestResponse({
-    description: 'Bad request.',
+    description: ERROR_MESSAGES('badRequest'),
     type: ValildationModel,
   })
   @HttpCode(201)
-  async signup(@Body() body: CreateUserDto) {
-    return this.userService.create(body);
+  async signup(@Body() body: CreateUserDto): Promise<SingupResponseDto> {
+    return this.userService.singup(body);
   }
 
   @Post('login')
   @ApiOkResponse({
-    description: 'User logged in successfully.',
-    type: LoginModelResponse,
+    description: SUCCESS_MESSAGES('user', 'login'),
+    type: LoginResponseDto,
   })
   @ApiBadRequestResponse({
-    description: 'Bad request.',
+    description: ERROR_MESSAGES('badRequest'),
     type: ValildationModel,
   })
-  async login(@Body() body: LoginUserDto) {
-    return this.authService.login(body);
+  async login(@Body() body: LoginUserDto): Promise<LoginResponseDto> {
+    return this.userService.login(body);
   }
 
   @Put('change-role/:userId')
-  @UseGuards(AdminGuard)
+  @UseGuards(RoleGuard('admin'))
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'User role changed successfully.',
-    type: ChangeRoleModelResponse,
+    description: SUCCESS_MESSAGES('user', 'changeRole'),
+    type: ChangeRoleResponseDto,
   })
   @ApiBadRequestResponse({
-    description: 'Bad request.',
+    description: ERROR_MESSAGES('badRequest'),
     type: ValildationModel,
   })
-  @ApiNotFoundResponse({ description: 'User not found.', type: NotFoundModel })
+  @ApiNotFoundResponse({
+    description: ERROR_MESSAGES('notFound'),
+    type: NotFoundModel,
+  })
   async changeRole(
     @Body() body: ChangeRoleDto,
-    @Param('userId', MongooseIdPipe) userId: string,
-  ) {
+    @Param('userId', MongooseIdPipe) userId: mongoose.Types.ObjectId,
+  ): Promise<ChangeRoleResponseDto> {
     return this.userService.changeRole(userId, body.role);
   }
 }

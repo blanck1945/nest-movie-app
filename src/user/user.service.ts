@@ -1,25 +1,36 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateUserDto } from '../auth/dto/user.dt';
-import { User } from '../auth/schema/user.schema';
+import { User } from './schema/user.schema';
+import {
+  SingupResponse,
+  SingupResponseDto,
+} from 'src/user/responses/auth.response';
+import { RolesTypes } from 'src/core/enums/roles';
+import { LoginUserDto } from 'src/auth/dto/loginUser.dto';
+import { JwtTokenService } from 'src/auth/jwt/jwt.service';
+import { ResponseService } from 'src/core/responses/response.service';
+import { SUCCESS_MESSAGES } from 'src/core/responses/success';
+import { LoginResponse, LoginResponseDto } from './responses/login.response';
+import { ERROR_MESSAGES } from 'src/core/responses/error';
+import {
+  ChangeRoleResponse,
+  ChangeRoleResponseDto,
+} from './responses/changeRole.response';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
-
-  async addNotification(user_id, notification) {
-    const user = await this.userModel.findById(user_id);
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    user.notifications.push(notification);
-    await user.save();
-
-    return user;
-  }
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private jwtTokenService: JwtTokenService,
+    private responseService: ResponseService,
+  ) {}
 
   async findOne(optionsObj) {
     try {
@@ -31,7 +42,7 @@ export class UserService {
         .exec();
 
       if (!user) {
-        throw new HttpException('User not found', 404);
+        throw new BadRequestException(ERROR_MESSAGES('invalidCredentials'));
       }
 
       return user;
@@ -40,38 +51,70 @@ export class UserService {
     }
   }
 
-  async create(data: CreateUserDto) {
+  async singup(data: CreateUserDto): Promise<SingupResponseDto> {
     try {
       const newUser = await this.userModel.create(data);
-      return {
-        hasError: false,
-        message: 'User created successfully',
-        user_id: newUser._id,
-        email: newUser.email,
-        username: newUser.username,
-      };
+
+      return this.responseService.success<SingupResponse>(
+        {
+          user_id: newUser._id,
+          email: newUser.email,
+          username: newUser.username,
+        },
+        SUCCESS_MESSAGES('user', 'create'),
+      );
     } catch (error) {
-      throw new HttpException('Email already exists', 400);
+      throw new HttpException(ERROR_MESSAGES('emailAlreadyExists'), 400);
     }
   }
 
-  async changeRole(user_id, role) {
+  async login({ username, password }: LoginUserDto): Promise<LoginResponseDto> {
+    try {
+      const user = await this.userModel.findOne({
+        filter: { username },
+      });
+
+      const isValid = await user.comparePassword(password);
+
+      if (!isValid) {
+        throw new BadRequestException(ERROR_MESSAGES('invalidCredentials'));
+      }
+
+      const token = await this.jwtTokenService.generateToken(user);
+
+      return this.responseService.success<LoginResponse>(
+        {
+          user,
+          token,
+        },
+        SUCCESS_MESSAGES('user', 'login'),
+      );
+    } catch (error) {
+      throw new HttpException(ERROR_MESSAGES('invalidCredentials'), 400);
+    }
+  }
+
+  async changeRole(
+    user_id: mongoose.Types.ObjectId,
+    role: RolesTypes,
+  ): Promise<ChangeRoleResponseDto> {
     try {
       const user = await this.userModel.findById(user_id);
 
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException(ERROR_MESSAGES('notFound'));
       }
 
       user.role = role;
       await user.save();
 
-      return {
-        hasError: false,
-        message: 'User role changed successfully',
-        user_id: user._id,
-        newRole: user.role,
-      };
+      return this.responseService.success<ChangeRoleResponse>(
+        {
+          user_id: user._id,
+          newRole: user.role,
+        },
+        SUCCESS_MESSAGES('user', 'changeRole'),
+      );
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }

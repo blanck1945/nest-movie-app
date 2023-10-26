@@ -1,71 +1,83 @@
 import { Injectable } from '@nestjs/common';
 import { CoreService } from '../core/core.service';
-import axios from 'axios';
+import { StarWarsApiIndexResponse } from './responses/index.response.dto';
+import { MovieBaseDto } from './dto/movie.base.dto';
+import { MovieCreateDto } from './dto/movie.create.dto';
+import { MovieUpdateDto } from './dto/movie.update.dto';
 import mongoose from 'mongoose';
+import { SUCCESS_MESSAGES } from '../core/responses/success';
+import { NewMovieResponse } from './responses/create.response.dto';
+import { DeletedMovieResponse } from './responses/delete.response.dto';
 
 @Injectable()
 export class MovieService {
   constructor(private coreService: CoreService) {}
 
   async index() {
-    return this.coreService.wrapper(
-      async () => await axios.get('http://swapi.dev/api/films'),
+    return await this.coreService.fetch<StarWarsApiIndexResponse>(
+      process.env.MOVIE_API_URL,
+      {
+        successMessage: SUCCESS_MESSAGES('movie', 'index'),
+      },
     );
   }
 
-  async show(id) {
-    return this.coreService.wrapper(
-      async () => await axios.get(process.env.MOVIE_API_URL + id),
+  async show(id: number) {
+    return await this.coreService.fetch<MovieBaseDto>(
+      `${process.env.MOVIE_API_URL}/${id}`,
+      {
+        successMessage: SUCCESS_MESSAGES('movie', 'show'),
+      },
     );
   }
 
-  async create(body) {
-    return await this.coreService.wrapper(
+  async create(body: MovieCreateDto) {
+    return await this.coreService.query<NewMovieResponse>(
       () => {
         return {
-          hasError: false,
-          message: 'movie created successfully',
-          _id: new mongoose.Types.ObjectId(),
+          id: new mongoose.Types.ObjectId().toHexString(),
           title: body.title,
         };
       },
       {
-        plainResponse: true,
+        successMessage: SUCCESS_MESSAGES('movie', 'create'),
       },
     );
   }
 
-  async update(id, body) {
-    return await this.coreService.wrapper(
-      async () => {
-        await axios.get(process.env.MOVIE_API_URL + id);
+  async update(id: number, body: MovieUpdateDto) {
+    const apiResponse = await this.coreService.fetch<MovieBaseDto>(
+      `${process.env.MOVIE_API_URL}/${id}`,
+    );
 
+    return await this.coreService.query<MovieUpdateDto>(
+      () => {
         return {
-          hasError: false,
-          message: 'movie updated successfully',
           id,
-          title: body.title,
+          title: apiResponse.data.title,
+          updatedFields: body,
         };
       },
       {
-        plainResponse: true,
+        successMessage: SUCCESS_MESSAGES('movie', 'update'),
       },
     );
   }
 
-  async delete(id) {
-    return await this.coreService.wrapper(
-      async () => {
-        await axios.get(process.env.MOVIE_API_URL + id);
+  async delete(id: number) {
+    const apiResponse = await this.coreService.fetch<MovieBaseDto>(
+      `${process.env.MOVIE_API_URL}/${id}`,
+    );
 
+    return await this.coreService.query<DeletedMovieResponse>(
+      () => {
         return {
-          hasError: false,
-          message: 'movie deleted successfully',
           id,
+          title: apiResponse.data.title,
         };
       },
       {
-        plainResponse: true,
+        successMessage: SUCCESS_MESSAGES('movie', 'delete'),
       },
     );
   }

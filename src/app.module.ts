@@ -4,7 +4,6 @@ import { ConfigModule } from '@nestjs/config';
 import { CoreModule } from './core/core.module';
 import { AuthModule } from './auth/auth.module';
 import { MovieModule } from './movie/movie.module';
-import { NotificationModule } from './notification/notification.module';
 import { AppController } from './app.controller';
 import { AppService } from './appservice';
 
@@ -20,7 +19,6 @@ import { AppService } from './appservice';
     CoreModule,
     AuthModule,
     MovieModule,
-    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

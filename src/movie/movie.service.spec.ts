@@ -3,14 +3,15 @@ import { MovieService } from './movie.service';
 import { MovieController } from './movie.controller';
 import { UserService } from '../user/user.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '../auth/schema/user.schema';
+import { User, UserSchema } from '../user/schema/user.schema';
 import { JwtService } from '@nestjs/jwt';
 import { CoreService } from '../core/core.service';
 import { AppModule } from '../app.module';
 import { UserModule } from '../user/user.module';
 import { CREATE_MOVIE_BODY, UPDATE_MOVIE_BODY } from './test/mocks/body';
-import { SHOW_MOVIE_RESPONSE } from './test/mocks/movie';
+import { MOVIE_RESPONSE_MOCK } from './test/mocks/movie';
 import { JwtTokenService } from '../auth/jwt/jwt.service';
+import mongoose from 'mongoose';
 
 describe('MovieService', () => {
   let movieService: MovieService;
@@ -43,10 +44,14 @@ describe('MovieService', () => {
     it('should return an array of movies', async () => {
       const result = await movieService.index();
 
-      expect(result).toHaveProperty('count');
-      expect(result).toHaveProperty('next');
-      expect(result).toHaveProperty('previous');
-      expect(result).toHaveProperty('results');
+      expect(result).toHaveProperty('hasError');
+      expect(result).toHaveProperty('message');
+      expect(result).toHaveProperty('data');
+
+      expect(result.data).toHaveProperty('count');
+      expect(result.data).toHaveProperty('next');
+      expect(result.data).toHaveProperty('previous');
+      expect(result.data).toHaveProperty('results');
     }, 10000);
   });
 
@@ -54,27 +59,28 @@ describe('MovieService', () => {
     it('should return a movie', async () => {
       const mockResponse = jest
         .fn()
-        .mockImplementation(() => SHOW_MOVIE_RESPONSE);
+        .mockImplementation(() => MOVIE_RESPONSE_MOCK);
 
       const mockResult = mockResponse();
       const result = await movieService.show(1);
 
       expect(result).toEqual(mockResult);
-      expect(result).toHaveProperty('title');
-      expect(result).toHaveProperty('episode_id');
-      expect(result).toHaveProperty('opening_crawl');
-      expect(result).toHaveProperty('director');
-      expect(result).toHaveProperty('producer');
-      expect(result).toHaveProperty('release_date');
-      expect(result).toHaveProperty('characters');
-      expect(result).toHaveProperty('planets');
-      expect(result).toHaveProperty('starships');
-      expect(result).toHaveProperty('vehicles');
-      expect(result).toHaveProperty('species');
-      expect(result).toHaveProperty('created');
-      expect(result).toHaveProperty('edited');
-      expect(result).toHaveProperty('url');
-    });
+      expect(result).toHaveProperty('data');
+      expect(result.data).toHaveProperty('title');
+      expect(result.data).toHaveProperty('episode_id');
+      expect(result.data).toHaveProperty('opening_crawl');
+      expect(result.data).toHaveProperty('director');
+      expect(result.data).toHaveProperty('producer');
+      expect(result.data).toHaveProperty('release_date');
+      expect(result.data).toHaveProperty('characters');
+      expect(result.data).toHaveProperty('planets');
+      expect(result.data).toHaveProperty('starships');
+      expect(result.data).toHaveProperty('vehicles');
+      expect(result.data).toHaveProperty('species');
+      expect(result.data).toHaveProperty('created');
+      expect(result.data).toHaveProperty('edited');
+      expect(result.data).toHaveProperty('url');
+    }, 10000);
   });
 
   describe('create method is called', () => {
@@ -85,18 +91,23 @@ describe('MovieService', () => {
           return {
             message: 'movie created successfully',
             _id: '5f9d4b0b9d9b4b0017b0e3d0',
-            title: body.title,
+            data: {
+              id: new mongoose.Types.ObjectId(),
+              title: body.title,
+            },
           };
         });
 
       const mockResult = mockResponse(CREATE_MOVIE_BODY);
       const result = await movieService.create(CREATE_MOVIE_BODY);
 
-      expect(result).toHaveProperty('message', mockResult.message);
-      expect(result).toHaveProperty('title', mockResult.title);
-      expect(result).toHaveProperty('_id');
+      console.warn(result);
 
-      expect(result._id).not.toEqual(mockResult._id);
+      expect(result).toHaveProperty('hasError', false);
+      expect(result).toHaveProperty('message', mockResult.message);
+      expect(result.data).toHaveProperty('title', mockResult.title);
+      expect(result.data).toHaveProperty('_id');
+      expect(result.data.id).not.toEqual(mockResult._id);
     });
   });
 
@@ -118,12 +129,15 @@ describe('MovieService', () => {
     it('Should return an object indicating that the movie was updated successfully', async () => {
       const mockResponse = jest
         .fn((x, y) => x)
-        .mockImplementation((id) => {
+        .mockImplementation((id, body) => {
           return {
             hasError: false,
             message: 'movie updated successfully',
-            id,
-            title: UPDATE_MOVIE_BODY.title,
+            data: {
+              id,
+              title: UPDATE_MOVIE_BODY.title,
+              updatedFields: body,
+            },
           };
         });
 
@@ -160,7 +174,9 @@ describe('MovieService', () => {
           return {
             hasError: false,
             message: 'movie deleted successfully',
-            id,
+            data: {
+              id,
+            },
           };
         });
 

@@ -5,14 +5,13 @@ import { UserService } from '../user/user.service';
 import { CoreService } from '../core/core.service';
 import { JwtService } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '../auth/schema/user.schema';
+import { User, UserSchema } from '../user/schema/user.schema';
 import { UserModule } from '../user/user.module';
-import { UserGuard } from '../auth/guards/user.guards';
 import { ExecutionContext } from '@nestjs/common';
 import { AppModule } from '../app.module';
-import { AdminGuard } from '../auth/guards/admin.guards';
 import { CREATE_MOVIE_BODY } from './test/mocks/body';
 import { JwtTokenService } from '../auth/jwt/jwt.service';
+import { RoleGuard } from '../auth/guards/role.guard';
 
 const mockTokens = {
   regularUserToken: process.env.REGULAR_USER_TOKEN,
@@ -43,8 +42,11 @@ describe('MovieController', () => {
   let service: MovieService;
 
   // Guards
-  let userGuard: UserGuard;
-  let adminGuard: AdminGuard;
+  const AdminGuard = RoleGuard('admin');
+  const UserGuard = RoleGuard('regularUser');
+
+  let jwtService;
+  let userService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -55,8 +57,6 @@ describe('MovieController', () => {
       ],
       controllers: [MovieController],
       providers: [
-        UserGuard,
-        AdminGuard,
         MovieService,
         UserService,
         JwtService,
@@ -67,8 +67,8 @@ describe('MovieController', () => {
 
     movieController = module.get<MovieController>(MovieController);
     service = module.get<MovieService>(MovieService);
-    userGuard = module.get<UserGuard>(UserGuard);
-    adminGuard = module.get<AdminGuard>(AdminGuard);
+    jwtService = module.get<JwtService>(JwtService);
+    userService = module.get<UserService>(UserService);
     jest.clearAllMocks();
   });
 
@@ -81,14 +81,16 @@ describe('MovieController', () => {
       const spy = jest.spyOn(service, 'index');
       await movieController.index();
       expect(spy).toHaveBeenCalled();
-    }, 10000);
+    }, 20000);
   });
 
   describe('SHOW - /movies/:id', () => {
     it('when show endpoint is called by a "Usuario Regular" the call should succeed', async () => {
       const context = getMockContext('regularUserToken');
 
-      const result = await userGuard.canActivate(context);
+      const result = await new UserGuard(jwtService, userService).canActivate(
+        context,
+      );
 
       expect(result).toBe(true);
     });
@@ -97,7 +99,7 @@ describe('MovieController', () => {
       const context = getMockContext('adminUserToken');
 
       try {
-        await userGuard.canActivate(context);
+        await await new UserGuard(jwtService, userService).canActivate(context);
 
         // Fail test if above expression doesn't throw anything.
         expect(true).toBe(false);
@@ -116,10 +118,11 @@ describe('MovieController', () => {
       const context = getMockContext('regularUserToken');
 
       try {
-        await adminGuard.canActivate(context);
+        await new AdminGuard(jwtService, userService).canActivate(context);
         // Fail test if above expression doesn't throw anything.
         expect(true).toBe(false);
       } catch (error) {
+        console.log(error);
         expect(error.status).toBe(401);
         expect(error.response).toEqual({
           message: 'Unauthorized',
@@ -131,14 +134,16 @@ describe('MovieController', () => {
     it('when show endpoint is called by a "Administrador" the call should succeed', async () => {
       const context = getMockContext('adminUserToken');
 
-      const error = await adminGuard.canActivate(context);
+      const error = await new AdminGuard(jwtService, userService).canActivate(
+        context,
+      );
 
       expect(error).toBe(true);
     });
 
     it('Request body should be valid - type CreateMovieDto', async () => {
       const context = getMockContext('adminUserToken');
-      await adminGuard.canActivate(context);
+      await new AdminGuard(jwtService, userService).canActivate(context);
       const response = await movieController.create(CREATE_MOVIE_BODY);
 
       expect(response).toHaveProperty('hasError', false);
@@ -150,7 +155,7 @@ describe('MovieController', () => {
       const context = getMockContext('regularUserToken');
 
       try {
-        await adminGuard.canActivate(context);
+        await new AdminGuard(jwtService, userService).canActivate(context);
         // Fail test if above expression doesn't throw anything.
         expect(true).toBe(false);
       } catch (error) {
@@ -165,7 +170,9 @@ describe('MovieController', () => {
     it('when show endpoint is called by a "Administrador" the call should succeed', async () => {
       const context = getMockContext('adminUserToken');
 
-      const error = await adminGuard.canActivate(context);
+      const error = await new AdminGuard(jwtService, userService).canActivate(
+        context,
+      );
 
       expect(error).toBe(true);
     });
@@ -176,7 +183,7 @@ describe('MovieController', () => {
       const context = getMockContext('regularUserToken');
 
       try {
-        await adminGuard.canActivate(context);
+        await new AdminGuard(jwtService, userService).canActivate(context);
         // Fail test if above expression doesn't throw anything.
         expect(true).toBe(false);
       } catch (error) {
@@ -191,7 +198,9 @@ describe('MovieController', () => {
     it('when delete endpoint is called by a "Administrador" the call should succeed', async () => {
       const context = getMockContext('adminUserToken');
 
-      const error = await adminGuard.canActivate(context);
+      const error = await new AdminGuard(jwtService, userService).canActivate(
+        context,
+      );
 
       expect(error).toBe(true);
     });

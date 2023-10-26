@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty } from 'class-validator';
+import { ROLES, RolesTypes } from 'src/core/enums/roles';
 
 export class ChangeRoleDto {
-  @ApiProperty({ enum: ['Usuario regular', 'Administrador'] })
+  @ApiProperty({ enum: [ROLES.admin, ROLES.regularUser] })
   @IsNotEmpty()
-  @IsEnum(['Usuario regular', 'Administrador'])
-  role: string;
+  @IsEnum([ROLES.admin, ROLES.regularUser])
+  role: RolesTypes;
 }

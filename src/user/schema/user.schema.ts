@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
-import { Notification } from 'src/notification/schema/notification.schema';
+import { ROLES, RolesTypes } from 'src/core/enums/roles';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -20,10 +20,10 @@ export class User {
   @Prop({
     required: true,
     trim: true,
-    enum: ['Usuario Regular', 'Administrador'],
-    default: 'Usuario Regular',
+    enum: [ROLES.admin, ROLES.regularUser],
+    default: ROLES.regularUser,
   })
-  role: string;
+  role: RolesTypes;
 
   @Prop({
     required: true,
@@ -53,13 +53,6 @@ export class User {
   })
   password: string;
 
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'Notification',
-    refPath: 'user_id',
-  })
-  notifications: Notification[];
-
   async comparePassword(password: string): Promise<boolean> {
     return bcrypt.compareAsync(password, this.password);
   }
@@ -78,7 +71,7 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
-UserSchema.methods.toJSON = function () {
+UserSchema.methods.toJSON = function (): Partial<User> {
   const { __v, password, ...user } = this.toObject();
   return user;
 };
