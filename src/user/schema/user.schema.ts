@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { ROLES, RolesTypes } from 'src/core/enums/roles';
 
@@ -9,6 +9,13 @@ export type UserDocument = HydratedDocument<User>;
   timestamps: true,
 })
 export class User {
+  @Prop({
+    required: true,
+    trim: true,
+    type: mongoose.Schema.Types.ObjectId,
+  })
+  id: mongoose.Types.ObjectId;
+
   @Prop({
     required: true,
     trim: true,
@@ -53,7 +60,7 @@ export class User {
   })
   password: string;
 
-  async comparePassword(password: string): Promise<boolean> {
+  async comparePassword?(password: string): Promise<boolean> {
     return bcrypt.compareAsync(password, this.password);
   }
 }
