@@ -7,6 +7,7 @@ import {
 import { HttpExceptionFilter } from './filters/custom.exeption';
 import { ResponseDto } from './dto/response.dto';
 import { ResponseService } from './responses/response.service';
+import { ERROR_MESSAGES } from './responses/error';
 
 @Injectable()
 export class CoreService {
@@ -16,7 +17,7 @@ export class CoreService {
   async fetch<T>(
     url: string,
     options?: {
-      requestOptions?: any;
+      requestOptions?: Partial<RequestInit>;
       plainResponse?: boolean;
       successMessage?: string;
     },
@@ -27,7 +28,7 @@ export class CoreService {
       const result = await jsonResult.json();
 
       if (result?.detail === 'Not found') {
-        throw new NotFoundException('Record not found');
+        throw new NotFoundException(ERROR_MESSAGES('notFound'));
       }
 
       return this.responseService.success<T>(
@@ -48,11 +49,11 @@ export class CoreService {
   handleErrors(error) {
     const errorsMap = {
       404: {
-        message: 'Record not found',
+        message: ERROR_MESSAGES('notFound'),
         type: 'Axios error',
       },
       500: {
-        message: 'Something went wrong',
+        message: ERROR_MESSAGES('somethingWentWrong'),
         type: 'Server error',
       },
     };
