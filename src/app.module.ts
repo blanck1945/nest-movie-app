@@ -6,6 +6,9 @@ import { AuthModule } from './auth/auth.module';
 import { MovieModule } from './movie/movie.module';
 import { AppController } from './app.controller';
 import { AppService } from './appservice';
+import { BenefitsController } from './benefits/benefits.controller';
+import { CodesController } from './codes/codes.controller';
+import { CodesService } from './codes/codes.service';
 
 @Module({
   imports: [
@@ -20,7 +23,7 @@ import { AppService } from './appservice';
     AuthModule,
     MovieModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, BenefitsController, CodesController],
+  providers: [AppService, CodesService],
 })
 export class AppModule {}
